@@ -6,11 +6,11 @@ This documentation shows the pin mapping between **NodeMCU** and **L293N Motor D
 
 | **NodeMCU Pin**          | **L293N Pin**     | **Function**                    |
 | ------------------------ | ----------------- | ------------------------------- |
-| D4 (PIN_STEERING_LEFT)   | IN1               | Controls steering motor left    |
-| D2 (PIN_STEERING_RIGHT)  | IN2               | Controls steering motor right   |
+| D4 (PIN_STEERING_RIGHT)  | IN1               | Controls steering motor right   |
+| D2 (PIN_STEERING_LEFT)   | IN2               | Controls steering motor left    |
 | D6 (PIN_STEERING_ENABLE) | EN1               | Enables/disables steering motor |
-| D8 (PIN_DRIVE_FWD)       | IN3               | Controls driving motor forward  |
-| D7 (PIN_DRIVE_BWD)       | IN4               | Controls driving motor backward |
+| D8 (PIN_DRIVE_BWD)       | IN3               | Controls driving motor backward |
+| D7 (PIN_DRIVE_FWD)       | IN4               | Controls driving motor forward  |
 | D5 (PIN_DRIVE_ENABLE)    | EN2               | Enables/disables driving motor  |
 | 3.3V or 5V (NodeMCU)     | VCC (L293N logic) | Power for L293N logic           |
 | GND                      | GND               | Common ground                   |
@@ -22,16 +22,16 @@ This documentation shows the pin mapping between **NodeMCU** and **L293N Motor D
 
 ## Diagram
 
-Here’s a visual representation of how to wire the NodeMCU to the L293N motor driver:
+Here's a visual representation of how to wire the NodeMCU to the L293N motor driver:
 
                          +----------------------+
                          |     NodeMCU          |
                          |                      |
-            D4  -------->| IN1 (Steering Left)  |
-            D2  -------->| IN2 (Steering Right) |
+            D4  -------->| IN1 (Steering Right) |
+            D2  -------->| IN2 (Steering Left)  |
             D6  -------->| EN1 (Steering Enable)|
-            D8  -------->| IN3 (Drive Forward)  |
-            D7  -------->| IN4 (Drive Backward) |
+            D8  -------->| IN3 (Drive Backward) |
+            D7  -------->| IN4 (Drive Forward)  |
             D5  -------->| EN2 (Drive Enable)   |
                          |                      |
           3.3V/5V  ----->| VCC (Logic Power)    |

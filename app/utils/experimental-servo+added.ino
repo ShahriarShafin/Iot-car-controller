@@ -1,4 +1,8 @@
 #include <ESP8266WiFi.h>
+#include <Servo.h>
+
+// Create a Servo object
+Servo myServo;
 
 // Constants
 const char* WIFI_SSID = "Bachelor";
@@ -7,10 +11,11 @@ const char* AP_SSID = "NodeMCU Car";
 const unsigned long RECONNECT_INTERVAL = 5000;  // 5 seconds
 
 // Pin Definitions
-const int PIN_STEERING_LEFT = D2;
-const int PIN_DRIVE_FWD = D7;
-const int PIN_STEERING_RIGHT = D4;
-const int PIN_DRIVE_BWD = D8;
+// const int PIN_STEERING_LEFT = D4;
+const int servoPin = D4;
+const int PIN_DRIVE_FWD = D8;
+const int PIN_STEERING_RIGHT = D2; // previously D3
+const int PIN_DRIVE_BWD = D7;
 const int PIN_DRIVE_ENABLE = D5;
 const int PIN_STEERING_ENABLE = D6;
 const int PIN_HORN = D1;
@@ -33,6 +38,9 @@ void setup() {
   setupPins();
   connectToWiFi();
   server.begin();
+  myServo.attach(servoPin);
+  myServo.write(90);
+
 }
 
 void loop() {
@@ -43,7 +51,7 @@ void loop() {
 
 // Initialize pins
 void setupPins() {
-  pinMode(PIN_STEERING_LEFT, OUTPUT);
+  // pinMode(PIN_STEERING_LEFT, OUTPUT);
   pinMode(PIN_DRIVE_FWD, OUTPUT);
   pinMode(PIN_STEERING_RIGHT, OUTPUT);
   pinMode(PIN_DRIVE_BWD, OUTPUT);
@@ -105,7 +113,7 @@ void processClientRequests() {
   Serial.println("Received data: " + request);
   executeCommand(request);
 
-  ESP.wdtFeed();  // Feed the watchdog to prevent reset
+  // ESP.wdtFeed();  // Feed the watchdog to prevent reset
 }
 
 
@@ -230,45 +238,54 @@ void monitorMemoryUsage() {
 // Motor control functions
 void moveForward() {
   controlMotors(LOW, HIGH, LOW, motorSpeed, LOW, LOW);
+  myServo.write(90);
 }
 
 void moveBackward() {
   controlMotors(LOW, HIGH, LOW, LOW, LOW, motorSpeed);
+  myServo.write(90);
 }
 
 void turnLeft() {
   controlMotors(HIGH, LOW, HIGH, LOW, LOW, LOW);
+  myServo.write(0);
 }
 
 void turnRight() {
   controlMotors(HIGH, LOW, LOW, LOW, HIGH, LOW);
+  myServo.write(180);
 }
 
 void wheelLeft() {
   controlMotors(HIGH, HIGH, HIGH, motorSpeed, LOW, LOW);
+  myServo.write(0);
 }
 
 void wheelRight() {
   controlMotors(HIGH, HIGH, LOW, motorSpeed, HIGH, LOW);
+  myServo.write(180);
 }
 
 void moveBackLeft() {
   controlMotors(HIGH, HIGH, HIGH, LOW, LOW, motorSpeed);
+  myServo.write(0);
 }
 
 void moveBackRight() {
   controlMotors(HIGH, HIGH, LOW, LOW, HIGH, motorSpeed);
+  myServo.write(180);
 }
 
 void stopMotors() {
   controlMotors(LOW, LOW, LOW, LOW, LOW, LOW);
+  myServo.write(90);
 }
 
 // Control motors
 void controlMotors(int steeringEnable, int driveEnable, int leftState, int fwdState, int rightState, int bwdState) {
   digitalWrite(PIN_STEERING_ENABLE, steeringEnable);
   digitalWrite(PIN_DRIVE_ENABLE, driveEnable);
-  digitalWrite(PIN_STEERING_LEFT, leftState);
+  // digitalWrite(PIN_STEERING_LEFT, leftState);
   analogWrite(PIN_DRIVE_FWD, fwdState);
   digitalWrite(PIN_STEERING_RIGHT, rightState);
   analogWrite(PIN_DRIVE_BWD, bwdState);

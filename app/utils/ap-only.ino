@@ -1,10 +1,7 @@
 #include <ESP8266WiFi.h>
 
 // Constants
-const char* WIFI_SSID = "Bachelor";
-const char* WIFI_PASSWORD = "Bachelor";
 const char* AP_SSID = "NodeMCU Car";
-const unsigned long RECONNECT_INTERVAL = 5000;  // 5 seconds
 
 // Pin Definitions
 const int PIN_STEERING_LEFT = D2;
@@ -14,15 +11,11 @@ const int PIN_DRIVE_BWD = D8;
 const int PIN_DRIVE_ENABLE = D5;
 const int PIN_STEERING_ENABLE = D6;
 const int PIN_HORN = D1;
-const int PIN_LED = D0; // Red LED on NodeMCU
+const int PIN_LED = D0;   // Red LED on NodeMCU
 const int PIN_BUTTON = D3; // Flash button on NodeMCU
 
 // Motor Speed
 int motorSpeed = 122;  // Default speed
-
-// State
-bool isAPMode = false;
-unsigned long lastReconnectAttempt = 0;
 
 // Create WiFi objects
 WiFiServer server(80);
@@ -31,14 +24,12 @@ WiFiClient client;
 void setup() {
   Serial.begin(115200);
   setupPins();
-  connectToWiFi();
+  setupAP();
   server.begin();
 }
 
 void loop() {
-  handleWiFiReconnection();
   processClientRequests();
-  checkForAPModeSwitch();  // Check if the button is pressed to switch to AP mode
 }
 
 // Initialize pins
@@ -51,47 +42,19 @@ void setupPins() {
   pinMode(PIN_STEERING_ENABLE, OUTPUT);
   pinMode(PIN_HORN, OUTPUT);
   pinMode(PIN_LED, OUTPUT);
-  pinMode(PIN_BUTTON, INPUT_PULLUP);  // Set button pin as input with pull-up resistor
+  pinMode(PIN_BUTTON, INPUT_PULLUP);
 
   stopMotors();  // Ensure motors are stopped initially
 }
 
-// Connect to WiFi
-void connectToWiFi() {
-  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-  Serial.print(F("Connecting to WiFi"));
-  unsigned long startAttemptTime = millis();
-
-  while (WiFi.status() != WL_CONNECTED && millis() - startAttemptTime < 7000) {
-    if (digitalRead(PIN_BUTTON) == LOW) {
-      Serial.println(F("\nButton pressed during WiFi connection attempt. Switching to AP mode..."));
-      enterAPMode();  // Switch to AP mode
-      return;
-    }
-    delay(300);
-    Serial.print(F("."));
-  }
-
-  if (WiFi.status() == WL_CONNECTED) {
-    digitalWrite(PIN_LED, HIGH);
-    Serial.println(F("\n🟢 Connected to WiFi."));
-    Serial.print(F("🌐 IP Address: "));
-    Serial.println(WiFi.localIP());
-  } else {
-    digitalWrite(PIN_LED, LOW);
-    Serial.println(F("\n🔴 Failed to connect to WiFi."));
-  }
-}
-
-// Handle WiFi reconnection attempts
-void handleWiFiReconnection() {
-  if (!isAPMode && WiFi.status() != WL_CONNECTED) {
-    unsigned long currentMillis = millis();
-    if (currentMillis - lastReconnectAttempt >= RECONNECT_INTERVAL) {
-      lastReconnectAttempt = currentMillis;
-      connectToWiFi();
-    }
-  }
+// Setup Access Point
+void setupAP() {
+  WiFi.mode(WIFI_AP);
+  WiFi.softAP(AP_SSID);
+  digitalWrite(PIN_LED, HIGH);
+  IPAddress myIP = WiFi.softAPIP();
+  Serial.print(F("🌐 AP IP address: "));
+  Serial.println(myIP);
 }
 
 // Process incoming client requests
@@ -107,7 +70,6 @@ void processClientRequests() {
 
   ESP.wdtFeed();  // Feed the watchdog to prevent reset
 }
-
 
 // Read client request
 String readClientRequest() {
@@ -286,26 +248,4 @@ void hornOff() {
 // Reset MCU
 void resetMCU() {
   ESP.restart();
-}
-
-// Check for button press to switch to AP mode
-void checkForAPModeSwitch() {
-  if (digitalRead(PIN_BUTTON) == LOW) {  // Button pressed (active LOW)
-    Serial.println(F("Switching to AP mode..."));
-    enterAPMode();
-  }
-}
-
-// Enter Access Point (AP) mode
-void enterAPMode() {
-  isAPMode = true;
-  WiFi.disconnect();  // Disconnect from current WiFi
-  delay(1000);  // Short delay before starting AP mode
-  WiFi.mode(WIFI_AP);
-  WiFi.softAP(AP_SSID);
-  digitalWrite(PIN_LED, HIGH);
-  IPAddress myIP = WiFi.softAPIP();
-  Serial.print(F("🌐 AP IP address: "));
-  Serial.println(myIP);
-  server.begin();
 }
